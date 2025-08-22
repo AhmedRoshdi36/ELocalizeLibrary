@@ -1,31 +1,29 @@
 ﻿using LibraryManagement.BLL.Interfaces;
 using LibraryManagement.DAL.Entities;
-using LibraryManagement.DAL.Persistance;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace LibraryManagement.MVC.Controllers
 {
     public class BooksController : Controller
     {
-        private readonly LibraryDbContext _context;
-        private readonly IImageService _imageService;
         private readonly IBookService _bookService; 
+        private readonly IBorrowingService _borrowingService;
 
-
-        public BooksController(LibraryDbContext context,IImageService imageService,IBookService bookService)
+        public BooksController(IBookService bookService, IBorrowingService borrowingService)
         {
-            _context = context;
-            _imageService = imageService;
             _bookService = bookService;
+            _borrowingService = borrowingService;
         }
 
         // GET: Books
         public async Task<IActionResult> Index()
         {
             var books = await _bookService.GetAllBooks();
-
+            var bookIds = books.Select(b => b.Id);
+            var borrowedCounts = await _borrowingService.GetBorrowedCopiesForBooksAsync(bookIds);
+            
+            ViewBag.BorrowedCounts = borrowedCounts;
             return View(books);
         }
 
@@ -37,8 +35,7 @@ namespace LibraryManagement.MVC.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var book = await _bookService.GetBookByIdAsync(id.Value);
             if (book == null)
             {
                 return NotFound();
@@ -58,17 +55,11 @@ namespace LibraryManagement.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,Author,Image,Copies")] Book book, IFormFile ImageFile)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,Author,ImagePath,Copies,Genre")] Book book, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
-                if (ImageFile != null && ImageFile.Length > 0)
-                {
-                    // save via service
-                    book.ImagePath = await _imageService.SaveImageAsync(ImageFile, "images/books");
-                }
-                _context.Add(book);
-                await _context.SaveChangesAsync();
+                await _bookService.AddBookAsync(book, ImageFile);
                 return RedirectToAction(nameof(Index));
             }
             return View(book);
@@ -82,7 +73,7 @@ namespace LibraryManagement.MVC.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books.FindAsync(id);
+            var book = await _bookService.GetBookByIdAsync(id.Value);
             if (book == null)
             {
                 return NotFound();
@@ -95,7 +86,7 @@ namespace LibraryManagement.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Author,Image,Copies")] Book book, IFormFile? ImageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,Author,ImagePath,Copies,Genre")] Book book, IFormFile? ImageFile)
         {
             if (id != book.Id)
             {
@@ -106,39 +97,11 @@ namespace LibraryManagement.MVC.Controllers
             {
                 try
                 {
-                    var existingBook = await _context.Books.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id);
-                    if (existingBook == null)
-                        return NotFound();
-
-                    if (ImageFile != null && ImageFile.Length > 0)
-                    {
-                        // delete old image if exists
-                        if (!string.IsNullOrEmpty(existingBook.ImagePath))
-                        {
-                            _imageService.DeleteImage(existingBook.ImagePath);
-                        }
-                        // save new one
-                        book.ImagePath = await _imageService.SaveImageAsync(ImageFile, "images/books");
-                    }
-                    else
-                    {
-                        // keep old image
-                        book.ImagePath = existingBook.ImagePath;
-                    }
-
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
+                    await _bookService.UpdateBookAsync(book, ImageFile);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (KeyNotFoundException)
                 {
-                    if (!BookExists(book.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -153,8 +116,7 @@ namespace LibraryManagement.MVC.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var book = await _bookService.GetBookByIdAsync(id.Value);
             if (book == null)
             {
                 return NotFound();
@@ -168,24 +130,81 @@ namespace LibraryManagement.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book != null)
-            {
-                if (!string.IsNullOrEmpty(book.ImagePath))
-                {
-                    _imageService.DeleteImage(book.ImagePath);
-                }
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync();
-            }
-
-            await _context.SaveChangesAsync();
+            await _bookService.DeleteBookAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookExists(int id)
+        // GET: Books/GetDeleteInfo/5
+        [HttpGet]
+        public async Task<IActionResult> GetDeleteInfo(int id)
         {
-            return _context.Books.Any(e => e.Id == id);
+            try
+            {
+                if (id <= 0)
+                {
+                    return Json(new { success = false, message = "Invalid book ID" });
+                }
+
+                var deleteInfo = await _bookService.GetBookDeleteInfoAsync(id);
+                return Json(new { 
+                    success = true, 
+                    book = deleteInfo.Book,
+                    totalCopies = deleteInfo.TotalCopies,
+                    borrowedCopies = deleteInfo.BorrowedCopies,
+                    availableCopies = deleteInfo.AvailableCopies,
+                    canDeleteSafely = deleteInfo.CanDeleteSafely,
+                    hasBorrowedCopies = deleteInfo.HasBorrowedCopies
+                });
+            }
+            catch (KeyNotFoundException)
+            {
+                return Json(new { success = false, message = "Book not found" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetDeleteInfo error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while getting book information" });
+            }
         }
+
+        // POST: Books/DeleteAjax
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAjax(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return Json(new { success = false, message = "Invalid book ID" });
+                }
+
+                await _bookService.DeleteBookAsync(id);
+                return Json(new { success = true, message = "Book deleted successfully" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return Json(new { success = false, message = "Book not found" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception for debugging
+                Console.WriteLine($"DeleteAjax error: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while deleting the book" });
+            }
+        }
+
+        // GET: Books/Deleted
+        public async Task<IActionResult> Deleted()
+        {
+            var deletedBooks = await _bookService.GetDeletedBooksAsync();
+            return View(deletedBooks);
+        }
+
+
     }
 }

@@ -9,6 +9,7 @@ public class LibraryDbContext : DbContext
 {
     public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options){ }
     public DbSet<Book> Books { get; set; } = null!; 
+    public DbSet<BorrowingTransaction> BorrowingTransactions { get; set; } = null!;
     // Using null-forgiving operator to suppress nullability warning
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,5 +1,6 @@
 ﻿
 
+using LibraryManagement.BLL.Models;
 using LibraryManagement.DAL.Entities;
 using Microsoft.AspNetCore.Http;
 
@@ -12,4 +13,7 @@ public interface IBookService
     Task AddBookAsync(Book book, IFormFile imageFile);
     Task UpdateBookAsync(Book book, IFormFile imageFile);
     Task DeleteBookAsync(int id);
+    Task<IEnumerable<Book>> GetDeletedBooksAsync();
+
+    Task<BookDeleteInfo> GetBookDeleteInfoAsync(int id);
 }

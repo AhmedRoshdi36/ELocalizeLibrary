@@ -1,0 +1,420 @@
+@model LibraryManagement.BLL.Models.PaginatedList<LibraryManagement.DAL.Entities.BorrowingTransaction>
+
+@{
+    ViewData["Title"] = "Borrowing History";
+    var selectedStatus = ViewBag.Status?.ToString() ?? "";
+    var selectedDateFilter = ViewBag.DateFilter?.ToString() ?? "";
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .archive-btn {
+        transition: all 0.3s ease;
+        border-radius: 6px;
+        font-weight: 500;
+        min-width: 80px;
+    }
+    
+    .archive-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .archive-btn:active {
+        transform: translateY(0);
+    }
+    
+    .transaction-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Borrowing History</h1>
+    <a asp-controller="Borrowing" asp-action="Index" class="btn btn-primary">Back to Borrow</a>
+</div>
+
+<!-- Compact Search and Filter Section -->
+<div class="row mb-3 g-2 align-items-end">
+    <div class="col-md-4">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search by book title...">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="borrowed">Borrowed</option>
+            <option value="returned">Returned</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="dateFilter">
+            <option value="">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+</div>
+<div class="mb-3">
+    <small class="text-muted" id="resultsCount"></small>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">All Transactions</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Items.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Borrowed Date</th>
+                            <th>Returned Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in Model.Items)
+                        {
+                            <tr class="transaction-row">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (transaction.Book != null && !string.IsNullOrEmpty(transaction.Book.ImagePath))
+                                        {
+                                            <img src="@Url.Content(transaction.Book.ImagePath)" 
+                                                 alt="@transaction.Book.Title" 
+                                                 class="me-2" 
+                                                 style="width:40px; height:50px; object-fit:cover;" />
+                                        }
+                                        <span class="book-title">@(transaction.Book?.Title ?? "Unknown Book")</span>
+                                    </div>
+                                </td>
+                                <td class="book-author">@(transaction.Book?.Author ?? "Unknown Author")</td>
+                                <td class="borrowed-date" data-date="@transaction.BorrowedDate.ToString("yyyy-MM-dd")">@transaction.BorrowedDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>
+                                    @if (transaction.ReturnedDate.HasValue)
+                                    {
+                                        <span class="returned-date" data-date="@transaction.ReturnedDate.Value.ToString("yyyy-MM-dd")">@transaction.ReturnedDate.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if (transaction.ReturnedDate.HasValue)
+                                        {
+                                            <span class="badge bg-success transaction-status">Returned</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning transaction-status">Borrowed</span>
+                                        }
+                                                                                 <button type="button" class="btn btn-outline-danger btn-sm archive-btn" 
+                                                 data-transaction-id="@transaction.Id" title="Archive Transaction">
+                                             <i class="fas fa-archive me-1"></i>Archive
+                                         </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer bg-white">
+                    <nav aria-label="Transaction history pagination">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                Showing @(((Model.PageIndex - 1) * Model.PageSize) + 1) to @Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount) of @Model.TotalCount transactions
+                            </div>
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (Model.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="History" asp-route-page="@(Model.PageIndex - 1)" asp-route-pageSize="@Model.PageSize">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
+                                    </li>
+                                }
+
+                                @{
+                                    var startPage = Math.Max(1, Model.PageIndex - 2);
+                                    var endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+                                }
+
+                                @if (startPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="History" asp-route-page="1" asp-route-pageSize="@Model.PageSize">1</a>
+                                    </li>
+                                    @if (startPage > 2)
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    }
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                        <a class="page-link" asp-action="History" asp-route-page="@i" asp-route-pageSize="@Model.PageSize">@i</a>
+                                    </li>
+                                }
+
+                                @if (endPage < Model.TotalPages)
+                                {
+                                    @if (endPage < Model.TotalPages - 1)
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    }
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="History" asp-route-page="@Model.TotalPages" asp-route-pageSize="@Model.PageSize">@Model.TotalPages</a>
+                                    </li>
+                                }
+
+                                @if (Model.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="History" asp-route-page="@(Model.PageIndex + 1)" asp-route-pageSize="@Model.PageSize">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item disabled">
+                                        <span class="page-link">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <h5 class="text-muted">No borrowing history found</h5>
+                <p class="text-muted">Start borrowing books to see transaction history</p>
+                <a asp-controller="Borrowing" asp-action="Index" class="btn btn-primary">Borrow Books</a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Transactions</h5>
+                <h2 class="text-primary">@Model.TotalCount</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5 class="card-title">Currently Borrowed</h5>
+                <h2 class="text-warning">@ViewBag.CurrentlyBorrowedCount</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log('Borrowing history page loaded');
+            
+            // Search and Filter functionality
+            function filterTransactions() {
+                const searchTerm = $('#searchInput').val().toLowerCase();
+                const selectedStatus = $('#statusFilter').val();
+                const dateFilter = $('#dateFilter').val();
+                
+                let visibleCount = 0;
+                
+                $('.transaction-row').each(function() {
+                    const row = $(this);
+                    const title = row.find('.book-title').text().toLowerCase();
+                    const status = row.find('.transaction-status').text().toLowerCase();
+                    const borrowedDate = row.find('.borrowed-date').data('date');
+                    
+                    let showRow = true;
+                    
+                    // Search filter (book title only)
+                    if (searchTerm && !title.includes(searchTerm)) {
+                        showRow = false;
+                    }
+                    
+                    // Status filter
+                    if (selectedStatus && status !== selectedStatus.toLowerCase()) {
+                        showRow = false;
+                    }
+                    
+                    // Date filter
+                    if (dateFilter && borrowedDate) {
+                        const today = new Date();
+                        const borrowedDateObj = new Date(borrowedDate);
+                        const diffTime = Math.abs(today - borrowedDateObj);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (dateFilter === 'today' && diffDays > 1) {
+                            showRow = false;
+                        } else if (dateFilter === 'week' && diffDays > 7) {
+                            showRow = false;
+                        } else if (dateFilter === 'month' && diffDays > 30) {
+                            showRow = false;
+                        } else if (dateFilter === 'year' && diffDays > 365) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    if (showRow) {
+                        row.show();
+                        visibleCount++;
+                    } else {
+                        row.hide();
+                    }
+                });
+                
+                // Update results count
+                $('#resultsCount').text(`Showing ${visibleCount} of ${$('.transaction-row').length} transactions`);
+                
+                // Show no results message if needed
+                if (visibleCount === 0) {
+                    if ($('.no-results-message').length === 0) {
+                        $('tbody').append('<tr class="no-results-message"><td colspan="5" class="text-center py-5"><h4 class="text-muted">No transactions match your search criteria</h4><button type="button" class="btn btn-outline-primary" id="clearFiltersBtn">Clear Filters</button></td></tr>');
+                    }
+                } else {
+                    $('.no-results-message').remove();
+                }
+            }
+            
+            // Search input event
+            $('#searchInput').on('input', function() {
+                filterTransactions();
+            });
+            
+            // Filter change events
+            $('#statusFilter, #dateFilter').on('change', function() {
+                filterTransactions();
+            });
+            
+            // Clear filters
+            $('#clearFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#statusFilter').val('');
+                $('#dateFilter').val('');
+                filterTransactions();
+            });
+            
+            // Clear filters from no results message
+            $(document).on('click', '#clearFiltersBtn', function() {
+                $('#searchInput').val('');
+                $('#statusFilter').val('');
+                $('#dateFilter').val('');
+                filterTransactions();
+            });
+            
+            // Initialize results count
+            filterTransactions();
+            
+            // Archive transaction functionality
+            $('.archive-btn').on('click', function() {
+                const transactionId = $(this).data('transaction-id');
+                const row = $(this).closest('tr');
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                
+                console.log('Archive button clicked for transaction ID:', transactionId);
+                console.log('Anti-forgery token:', token);
+                
+                if (confirm('Are you sure you want to archive this transaction?')) {
+                    $.ajax({
+                        url: '@Url.Action("ArchiveTransaction", "Borrowing")',
+                        type: 'POST',
+                        data: { id: transactionId },
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        success: function(response) {
+                            console.log('Archive response:', response);
+                            if (response.success) {
+                                row.fadeOut(300, function() {
+                                    $(this).remove();
+                                    filterTransactions(); // Update count
+                                });
+                                showToast('success', response.message);
+                            } else {
+                                showToast('error', response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Archive error:', { xhr, status, error });
+                            showToast('error', 'Error archiving transaction: ' + error);
+                        }
+                    });
+                }
+            });
+            
+            // Toast notification function
+            function showToast(type, message) {
+                const toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+                const toast = $(`
+                    <div class="toast align-items-center ${toastClass} text-white border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('.toast-container').append(toast);
+                const bsToast = new bootstrap.Toast(toast[0]);
+                bsToast.show();
+                
+                toast.on('hidden.bs.toast', function() {
+                    $(this).remove();
+                });
+            }
+        });
+    </script>
+}

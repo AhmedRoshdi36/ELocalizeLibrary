@@ -1,0 +1,319 @@
+@model IEnumerable<LibraryManagement.DAL.Entities.Book>
+@using LibraryManagement.DAL
+@using System.ComponentModel.DataAnnotations
+
+@{
+    ViewData["Title"] = "Deleted Books";
+    var genres = Enum.GetValues<Genre>();
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">
+        <i class="fas fa-trash text-muted"></i> Deleted Books
+    </h3>
+    <div>
+        <a asp-controller="Books" asp-action="Index" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Books
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    These books have been removed from the library. Deleted books are kept for reference and transaction history.
+</div>
+
+@if (TempData["Message"] != null)
+{
+    var messageType = TempData["MessageType"]?.ToString() ?? "info";
+    var alertClass = messageType == "success" ? "alert-success" : "alert-danger";
+    <div class="alert @alertClass alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Compact Search and Filter Section -->
+<div class="row mb-3 g-2 align-items-end">
+    <div class="col-md-4">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search deleted books...">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="genreFilter">
+            <option value="">All Genres</option>
+            @foreach (var genre in genres)
+            {
+                var displayName = genre.GetType()
+                    .GetField(genre.ToString())
+                    ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                    .FirstOrDefault() as DisplayAttribute;
+                
+                var genreName = displayName?.Name ?? genre.ToString();
+                <option value="@genreName">@genreName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="dateFilter">
+            <option value="">All Dates</option>
+            <option value="today">Deleted Today</option>
+            <option value="week">Deleted This Week</option>
+            <option value="month">Deleted This Month</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+</div>
+<div class="mb-3">
+    <small class="text-muted" id="resultsCount"></small>
+</div>
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-warning">
+                @if (!string.IsNullOrEmpty(book.ImagePath))
+                {
+                    <img src="@Url.Content(book.ImagePath)" class="card-img-top p-2" style="height:200px; width:100%; object-fit:contain; background:#fff; opacity:0.7;" />
+                }
+                else
+                {
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px; opacity:0.7;">
+                        <span class="text-muted">No image</span>
+                    </div>
+                }
+
+                <div class="card-body pb-1">
+                    <h5 class="card-title text-muted">@book.Title</h5>
+                    <p class="card-text text-muted">@book.Author</p>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-secondary">
+                                Copies: @book.Copies
+                            </span>
+                            <small class="text-muted">@book.Genre</small>
+                        </div>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-calendar-times"></i> 
+                            Deleted: @book.DeletedAt?.ToString("MMM dd, yyyy")
+                        </small>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 pt-0 pb-2">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" 
+                                onclick="showBookDetails(@book.Id)">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="fas fa-trash fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No deleted books found</h4>
+        <p class="text-muted">All books are currently active in the library.</p>
+        <a asp-controller="Books" asp-action="Index" class="btn btn-primary">View All Books</a>
+    </div>
+}
+
+<!-- Book Details Modal -->
+<div class="modal fade" id="bookDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Book Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bookDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log('Deleted books page loaded');
+            
+            // Search and Filter functionality
+            function filterBooks() {
+                const searchTerm = $('#searchInput').val().toLowerCase();
+                const selectedGenre = $('#genreFilter').val();
+                const dateFilter = $('#dateFilter').val();
+                
+                let visibleCount = 0;
+                
+                $('.col-sm-6').each(function() {
+                    const card = $(this);
+                    const title = card.find('.card-title').text().toLowerCase();
+                    const author = card.find('.card-text').first().text().toLowerCase();
+                    const genre = card.find('small.text-muted').first().text().toLowerCase();
+                    const deletedDate = card.find('small.text-muted.d-block').text().toLowerCase();
+                    
+                    let showCard = true;
+                    
+                    // Search filter
+                    if (searchTerm && !title.includes(searchTerm) && !author.includes(searchTerm)) {
+                        showCard = false;
+                    }
+                    
+                    // Genre filter
+                    if (selectedGenre && !genre.includes(selectedGenre.toLowerCase())) {
+                        showCard = false;
+                    }
+                    
+                    // Date filter
+                    if (dateFilter) {
+                        const today = new Date();
+                        const deletedDateText = deletedDate.match(/deleted: (.+)/)?.[1];
+                        if (deletedDateText) {
+                            const deletedDateObj = new Date(deletedDateText);
+                            const diffTime = Math.abs(today - deletedDateObj);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (dateFilter === 'today' && diffDays > 1) {
+                                showCard = false;
+                            } else if (dateFilter === 'week' && diffDays > 7) {
+                                showCard = false;
+                            } else if (dateFilter === 'month' && diffDays > 30) {
+                                showCard = false;
+                            }
+                        }
+                    }
+                    
+                    if (showCard) {
+                        card.show();
+                        visibleCount++;
+                    } else {
+                        card.hide();
+                    }
+                });
+                
+                // Update results count
+                $('#resultsCount').text(`Showing ${visibleCount} of ${$('.col-sm-6').length} deleted books`);
+                
+                // Show no results message if needed
+                if (visibleCount === 0) {
+                    // Only show the JavaScript-generated message if there are actually books but none match the filter
+                    if ($('.col-sm-6').length > 0 && $('.no-results-message').length === 0) {
+                        $('.row').append('<div class="col-12 text-center py-5 no-results-message"><h4 class="text-muted">No deleted books match your search criteria</h4><button type="button" class="btn btn-outline-primary" id="clearFiltersBtn">Clear Filters</button></div>');
+                    }
+                } else {
+                    $('.no-results-message').remove();
+                }
+            }
+            
+            // Search input event
+            $('#searchInput').on('input', function() {
+                filterBooks();
+            });
+            
+            // Filter change events
+            $('#genreFilter, #dateFilter').on('change', function() {
+                filterBooks();
+            });
+            
+            // Clear filters
+            $('#clearFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#genreFilter').val('');
+                $('#dateFilter').val('');
+                filterBooks();
+            });
+            
+            // Clear filters from no results message
+            $(document).on('click', '#clearFiltersBtn', function() {
+                $('#searchInput').val('');
+                $('#genreFilter').val('');
+                $('#dateFilter').val('');
+                filterBooks();
+            });
+            
+            // Initialize results count
+            filterBooks();
+        });
+        
+        // Function to show book details modal
+        function showBookDetails(bookId) {
+            // Find the book card and extract information
+            const bookCard = $(`.col-sm-6:has(button[onclick="showBookDetails(${bookId})"])`);
+            
+            if (bookCard.length > 0) {
+                const title = bookCard.find('.card-title').text().trim();
+                const author = bookCard.find('.card-text').first().text().trim();
+                const copies = bookCard.find('.badge').text().trim();
+                const genre = bookCard.find('small.text-muted').first().text().trim();
+                const deletedDate = bookCard.find('small.text-muted.d-block').text().trim();
+                const imageSrc = bookCard.find('img').attr('src');
+                
+                // Create detailed content
+                const detailsHtml = `
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            ${imageSrc ? 
+                                `<img src="${imageSrc}" class="img-fluid rounded" style="max-height: 300px; object-fit: contain;" alt="${title}">` :
+                                `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 300px; opacity: 0.7;">
+                                    <span class="text-muted">No image available</span>
+                                </div>`
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="text-muted mb-3">${title}</h5>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Author:</strong></div>
+                                <div class="col-sm-8 text-muted">${author}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Genre:</strong></div>
+                                <div class="col-sm-8 text-muted">${genre}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Copies:</strong></div>
+                                <div class="col-sm-8 text-muted">${copies}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Deleted Date:</strong></div>
+                                <div class="col-sm-8 text-danger">
+                                    <i class="fas fa-calendar-times me-1"></i>${deletedDate}
+                                </div>
+                            </div>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>Note:</strong> This book has been removed from the library and is no longer available for borrowing.
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                $('#bookDetailsContent').html(detailsHtml);
+            } else {
+                // Fallback if card not found
+                $('#bookDetailsContent').html(`
+                    <div class="text-center">
+                        <p class="text-danger">Book details not found</p>
+                        <p class="text-muted">The book information could not be retrieved.</p>
+                    </div>
+                `);
+            }
+            
+            $('#bookDetailsModal').modal('show');
+        }
+    </script>
+}

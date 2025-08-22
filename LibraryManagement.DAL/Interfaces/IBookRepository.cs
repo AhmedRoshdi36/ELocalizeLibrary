@@ -4,9 +4,11 @@ using LibraryManagement.DAL.Entities;
 
 namespace LibraryManagement.DAL.Interfaces;
 
-public interface IBookRepository
+public interface IBookRepository : IGenericRepository<Book>
 {
-    public Task<IEnumerable<Book>> GetAllBooksAsync();
-
+    Task<IEnumerable<Book>> GetAllBooksAsync();
+    Task<bool> ExistsAsync(int id);
+    void SoftDeleteBook(Book book);
+    Task<IEnumerable<Book>> GetDeletedBooksAsync();
 
 }

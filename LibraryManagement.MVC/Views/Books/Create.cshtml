@@ -1,63 +1,129 @@
-﻿@model LibraryManagement.DAL.Entities.Book
+﻿@using LibraryManagement.DAL
+@using System.ComponentModel.DataAnnotations
+@model LibraryManagement.DAL.Entities.Book
 
 @{
     ViewData["Title"] = "Create";
+    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+    var maxFileSize = 5; // 5MB
+    var genres = Enum.GetValues<Genre>();
 }
 
-<h1>Create</h1>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Create Book</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-<h4>Book</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <!-- ✅ enctype is required for file upload -->
-        <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label asp-for="Genre"></label>
+                            <select asp-for="Genre" class="form-control">
+                                @foreach (var genre in genres)
+                                {
+                                    var displayName = genre.GetType()
+                                        .GetField(genre.ToString())
+                                        ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                                        .FirstOrDefault() as DisplayAttribute;
+                                    
+                                    var genreName = displayName?.Name ?? genre.ToString();
+                                    <option value="@((int)genre)">@genreName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Genre" class="text-danger"></span>
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Author" class="form-label"></label>
+                                <input asp-for="Author" class="form-control" />
+                                <span asp-validation-for="Author" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Copies" class="form-label"></label>
+                                <input asp-for="Copies" class="form-control" />
+                                <span asp-validation-for="Copies" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Book Cover</label>
+                            <input type="file" name="ImageFile" class="form-control" required 
+                                   accept="@string.Join(",", allowedExtensions)" 
+                                   onchange="validateFile(this)" />
+                            <div class="form-text">
+                                <strong>Required:</strong> Image file (JPG, JPEG, PNG, GIF, BMP, WEBP)<br>
+                                <strong>Maximum size:</strong> @maxFileSize MB
+                            </div>
+                            <div id="fileValidationMessage" class="text-danger mt-2" style="display: none;"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Author" class="control-label"></label>
-                <input asp-for="Author" class="form-control" />
-                <span asp-validation-for="Author" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Copies" class="control-label"></label>
-                <input asp-for="Copies" class="form-control" />
-                <span asp-validation-for="Copies" class="text-danger"></span>
-            </div>
-
-            <!-- ✅ File upload field -->
-            <div class="form-group">
-                <label>Book Cover</label>
-                <input type="file" name="ImageFile" class="form-control" />
-            </div>
-
-            
-
-            <div class="form-group mt-3">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    <script>
+        function validateFile(input) {
+            const file = input.files[0];
+            const messageDiv = document.getElementById('fileValidationMessage');
+            const submitBtn = document.querySelector('button[type="submit"]');
+            
+            if (!file) {
+                messageDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Check file extension
+            const allowedExtensions = @Html.Raw(Json.Serialize(allowedExtensions));
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                messageDiv.textContent = `Invalid file type. Allowed types: ${allowedExtensions.join(', ')}`;
+                messageDiv.style.display = 'block';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            // Check file size (5MB = 5 * 1024 * 1024 bytes)
+            const maxSize = @maxFileSize * 1024 * 1024;
+            if (file.size > maxSize) {
+                messageDiv.textContent = `File size too large. Maximum size allowed: @maxFileSize MB`;
+                messageDiv.style.display = 'block';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            // File is valid
+            messageDiv.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    </script>
 }

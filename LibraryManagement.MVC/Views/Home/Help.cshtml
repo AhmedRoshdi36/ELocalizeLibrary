@@ -1,0 +1,509 @@
+@{
+    ViewData["Title"] = "Help Center - Library Management System";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-question-circle me-3"></i>Help Center
+            </h1>
+            <p class="lead text-muted fs-5">Everything you need to know about using the Library Management System</p>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3 text-primary">
+                        <i class="fas fa-compass me-2"></i>Quick Navigation
+                    </h3>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <a href="#getting-started" class="btn btn-outline-primary w-100 text-start">
+                                <i class="fas fa-rocket me-2"></i>Getting Started
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="#books-management" class="btn btn-outline-success w-100 text-start">
+                                <i class="fas fa-book me-2"></i>Books Management
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="#borrowing-system" class="btn btn-outline-info w-100 text-start">
+                                <i class="fas fa-handshake me-2"></i>Borrowing System
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <a href="#transactions" class="btn btn-outline-warning w-100 text-start">
+                                <i class="fas fa-history me-2"></i>Transactions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Getting Started Section -->
+    <div id="getting-started" class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fas fa-rocket me-2"></i>Getting Started
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-primary mb-3">Welcome to Your Digital Library</h4>
+                            <p class="text-muted">The Library Management System is designed to help you efficiently manage your book collection, track borrowing transactions, and maintain comprehensive records.</p>
+                            
+                            <h5 class="fw-bold mt-4 mb-3">Key Features:</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Book Management:</strong> Add, edit, and organize your book collection</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Borrowing System:</strong> Track book borrowing and returns</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Transaction History:</strong> View detailed borrowing records</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Archive Management:</strong> Organize old transactions</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Smart Search:</strong> Find books and transactions quickly</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-light p-4 rounded">
+                                <h5 class="fw-bold text-primary mb-3">Quick Start Guide</h5>
+                                <ol class="mb-0">
+                                    <li class="mb-2">Start by adding books to your collection</li>
+                                    <li class="mb-2">Use the Borrow page to lend books to users</li>
+                                    <li class="mb-2">Track all transactions in the History section</li>
+                                    <li class="mb-2">Archive old transactions when needed</li>
+                                    <li class="mb-2">Use search and filters to find information quickly</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Management Section -->
+    <div id="books-management" class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fas fa-book me-2"></i>Books Management
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-success mb-3">Adding a New Book</h4>
+                            <div class="bg-light p-3 rounded mb-4">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Navigate to <strong>Books</strong> in the main menu</li>
+                                    <li class="mb-2">Click the <strong>"Create New"</strong> button</li>
+                                    <li class="mb-2">Fill in the book details:
+                                        <ul class="mt-2">
+                                            <li>Title and Author</li>
+                                            <li>Description (optional)</li>
+                                            <li>Genre selection</li>
+                                            <li>Number of copies</li>
+                                            <li>Book cover image</li>
+                                        </ul>
+                                    </li>
+                                    <li class="mb-2">Click <strong>"Create"</strong> to save</li>
+                                </ol>
+                            </div>
+
+                            <h4 class="fw-bold text-success mb-3">Editing a Book</h4>
+                            <div class="bg-light p-3 rounded">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Find the book in the Books list</li>
+                                    <li class="mb-2">Click the <strong>"Edit"</strong> button</li>
+                                    <li class="mb-2">Modify the information as needed</li>
+                                    <li class="mb-2">Click <strong>"Save"</strong> to update</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-success mb-3">Managing Book Copies</h4>
+                            <div class="alert alert-info">
+                                <h6 class="fw-bold"><i class="fas fa-info-circle me-2"></i>Copy Management</h6>
+                                <p class="mb-2">The system automatically tracks:</p>
+                                <ul class="mb-0">
+                                    <li><strong>Total Copies:</strong> How many copies you own</li>
+                                    <li><strong>Available Copies:</strong> Copies not currently borrowed</li>
+                                    <li><strong>Borrowed Copies:</strong> Copies currently lent out</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="fw-bold text-success mb-3">Soft Delete Feature</h4>
+                            <div class="alert alert-warning">
+                                <h6 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Important Note</h6>
+                                <p class="mb-2">Books cannot be deleted if they have borrowed copies. The system uses "soft delete" which:</p>
+                                <ul class="mb-0">
+                                    <li>Marks books as deleted but keeps them in the database</li>
+                                    <li>Preserves transaction history</li>
+                                    <li>Allows viewing deleted books in the "Deleted Books" section</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="fw-bold text-success mb-3">Search and Filter</h4>
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-2">Use the search bar to find books by:</p>
+                                <ul class="mb-0">
+                                    <li>Book title</li>
+                                    <li>Author name</li>
+                                    <li>Genre</li>
+                                    <li>Availability status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrowing System Section -->
+    <div id="borrowing-system" class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fas fa-handshake me-2"></i>Borrowing System
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-info mb-3">Borrowing a Book</h4>
+                            <div class="bg-light p-3 rounded mb-4">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Go to the <strong>Borrow</strong> page</li>
+                                    <li class="mb-2">Browse available books in the card layout</li>
+                                    <li class="mb-2">Check the available copies count</li>
+                                    <li class="mb-2">Click the <strong>"Borrow"</strong> button</li>
+                                    <li class="mb-2">The system will automatically:
+                                        <ul class="mt-2">
+                                            <li>Create a transaction record</li>
+                                            <li>Decrease available copies</li>
+                                            <li>Update the book status</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <h4 class="fw-bold text-info mb-3">Returning a Book</h4>
+                            <div class="bg-light p-3 rounded">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Find the book on the <strong>Borrow</strong> page</li>
+                                    <li class="mb-2">Check if there are borrowed copies</li>
+                                    <li class="mb-2">Click the <strong>"Return"</strong> button</li>
+                                    <li class="mb-2">The system will automatically:
+                                        <ul class="mt-2">
+                                            <li>Mark the transaction as returned</li>
+                                            <li>Increase available copies</li>
+                                            <li>Update the book status</li>
+                                        </ul>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-info mb-3">Business Rules</h4>
+                            <div class="alert alert-success">
+                                <h6 class="fw-bold"><i class="fas fa-check-circle me-2"></i>Borrowing Rules</h6>
+                                <ul class="mb-0">
+                                    <li>You can only borrow if copies are available</li>
+                                    <li>The system prevents over-borrowing</li>
+                                    <li>Each borrow creates a unique transaction</li>
+                                    <li>Real-time copy count updates</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h6 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Returning Rules</h6>
+                                <ul class="mb-0">
+                                    <li>You can only return if copies are borrowed</li>
+                                    <li>The system prevents over-returning</li>
+                                    <li>Returns are processed in order</li>
+                                    <li>Automatic copy count restoration</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="fw-bold text-info mb-3">AJAX Features</h4>
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-2">The borrowing system uses AJAX for:</p>
+                                <ul class="mb-0">
+                                    <li>Instant borrow/return without page reload</li>
+                                    <li>Real-time copy count updates</li>
+                                    <li>Dynamic button state changes</li>
+                                    <li>Toast notifications for feedback</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div id="transactions" class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fas fa-history me-2"></i>Transaction History & Archive
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-warning mb-3">Viewing Transaction History</h4>
+                            <div class="bg-light p-3 rounded mb-4">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Navigate to <strong>Transactions</strong> in the main menu</li>
+                                    <li class="mb-2">View all borrowing transactions in a table format</li>
+                                    <li class="mb-2">Each transaction shows:
+                                        <ul class="mt-2">
+                                            <li>Book title and author</li>
+                                            <li>Borrowed date</li>
+                                            <li>Returned date (if applicable)</li>
+                                            <li>Status (Borrowed/Returned)</li>
+                                        </ul>
+                                    </li>
+                                    <li class="mb-2">Use pagination to navigate through large lists</li>
+                                </ol>
+                            </div>
+
+                            <h4 class="fw-bold text-warning mb-3">Filtering Transactions</h4>
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-2">Use the search and filter options:</p>
+                                <ul class="mb-0">
+                                    <li><strong>Search:</strong> Find by book title</li>
+                                    <li><strong>Status:</strong> Filter by borrowed/returned</li>
+                                    <li><strong>Date Range:</strong> Filter by date periods</li>
+                                    <li><strong>Real-time:</strong> Instant filtering results</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="fw-bold text-warning mb-3">Archive Management</h4>
+                            <div class="alert alert-info">
+                                <h6 class="fw-bold"><i class="fas fa-archive me-2"></i>Archiving Transactions</h6>
+                                <p class="mb-2">Archive old transactions to keep your active history clean:</p>
+                                <ul class="mb-0">
+                                    <li>Click the <strong>"Archive"</strong> button on any transaction</li>
+                                    <li>Archived transactions are moved to a separate section</li>
+                                    <li>They no longer appear in the main history</li>
+                                    <li>You can unarchive them if needed</li>
+                                </ul>
+                            </div>
+
+                            <h4 class="fw-bold text-warning mb-3">Accessing Archived Transactions</h4>
+                            <div class="bg-light p-3 rounded mb-4">
+                                <ol class="mb-0">
+                                    <li class="mb-2">Click <strong>"Archived Transactions"</strong> in the navbar</li>
+                                    <li class="mb-2">View all archived transactions</li>
+                                    <li class="mb-2">Use the <strong>"Unarchive"</strong> button to restore</li>
+                                    <li class="mb-2">Unarchived transactions return to main history</li>
+                                </ol>
+                            </div>
+
+                            <h4 class="fw-bold text-warning mb-3">Deleted Books Management</h4>
+                            <div class="bg-light p-3 rounded">
+                                <p class="mb-2">Access soft-deleted books:</p>
+                                <ul class="mb-0">
+                                    <li>Click <strong>"Deleted Books"</strong> in the navbar</li>
+                                    <li>View all soft-deleted books</li>
+                                    <li>See deletion date and details</li>
+                                    <li>Books with borrowed copies cannot be deleted</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQs Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Frequently Asked Questions
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    Can I delete a book that has borrowed copies?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    No, the system prevents deletion of books that have borrowed copies. This ensures data integrity and prevents loss of transaction history. You must wait for all copies to be returned before deleting a book.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    What happens when I archive a transaction?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Archiving moves the transaction to a separate section and removes it from the main transaction history. This helps keep your active history clean while preserving all records. You can unarchive transactions at any time.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    How does the copy management system work?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    The system automatically tracks total copies, available copies, and borrowed copies. When you borrow a book, available copies decrease and borrowed copies increase. When you return a book, the reverse happens. The system prevents over-borrowing and over-returning.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Can I edit a book after it has been borrowed?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes, you can edit book details at any time. Changes to book information (title, author, description, genre) will be reflected immediately. However, changing the number of copies should be done carefully as it affects borrowing availability.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                    How do I find a specific book or transaction?
+                                </button>
+                            </h2>
+                            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Use the search functionality on both the Books and Transactions pages. You can search by book title, author, or filter by genre and availability. The search is real-time and updates results as you type.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Support Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <h3 class="fw-bold text-primary mb-3">
+                        <i class="fas fa-headset me-2"></i>Need More Help?
+                    </h3>
+                    <p class="text-muted mb-4">If you couldn't find the answer you're looking for, here are additional resources:</p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded">
+                                <i class="fas fa-book-open fa-2x text-primary mb-3"></i>
+                                <h5 class="fw-bold">User Manual</h5>
+                                <p class="text-muted small">Detailed step-by-step instructions for all features</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded">
+                                <i class="fas fa-video fa-2x text-success mb-3"></i>
+                                <h5 class="fw-bold">Video Tutorials</h5>
+                                <p class="text-muted small">Watch video guides for complex operations</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-light p-3 rounded">
+                                <i class="fas fa-envelope fa-2x text-info mb-3"></i>
+                                <h5 class="fw-bold">Contact Support</h5>
+                                <p class="text-muted small">Get in touch with our support team</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+    
+    .btn {
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: #e7f3ff;
+        color: #0d6efd;
+    }
+    
+    .alert {
+        border-radius: 0.75rem;
+        border: none;
+    }
+    
+    .bg-light {
+        border-radius: 0.75rem;
+    }
+    
+    /* Smooth scrolling for anchor links */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>

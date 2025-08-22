@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AttendanceTracker.DAL;
+namespace LibraryManagement.DAL;
 
 public static class DependencyInjection
 {

@@ -4,6 +4,7 @@ using LibraryManagement.DAL.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagement.DAL.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250822141108_AddBorrowingTransactions")]
+    partial class AddBorrowingTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,9 +41,6 @@ namespace LibraryManagement.DAL.Migrations
                     b.Property<int>("Copies")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -52,9 +52,6 @@ namespace LibraryManagement.DAL.Migrations
                     b.Property<string>("ImagePath")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -74,7 +71,6 @@ namespace LibraryManagement.DAL.Migrations
                             Description = "Build Cloud,Web and Desktop Applications",
                             Genre = 1,
                             ImagePath = "/images/books/CSharp 12 .jpg",
-                            IsDeleted = false,
                             Title = "C# 12"
                         },
                         new
@@ -85,7 +81,6 @@ namespace LibraryManagement.DAL.Migrations
                             Description = "Intro to C++",
                             Genre = 1,
                             ImagePath = "/images/books/CPP .jpg",
-                            IsDeleted = false,
                             Title = "C++"
                         },
                         new
@@ -96,7 +91,6 @@ namespace LibraryManagement.DAL.Migrations
                             Description = "Data Structures and Algorithms in C++, Goodrich",
                             Genre = 1,
                             ImagePath = "/images/books/DSA.jpg",
-                            IsDeleted = false,
                             Title = "Data Structures and Algorithms"
                         },
                         new
@@ -107,7 +101,6 @@ namespace LibraryManagement.DAL.Migrations
                             Description = "A classic romantic novel about love and societal expectations.",
                             Genre = 4,
                             ImagePath = "/images/books/Pride .jpg",
-                            IsDeleted = false,
                             Title = "Pride and Prejudice"
                         });
                 });
@@ -125,9 +118,6 @@ namespace LibraryManagement.DAL.Migrations
 
                     b.Property<DateTime>("BorrowedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("ReturnedDate")
                         .HasColumnType("datetime2");

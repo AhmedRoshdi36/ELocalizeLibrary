@@ -1,0 +1,494 @@
+@model IEnumerable<LibraryManagement.DAL.Entities.Book>
+@using LibraryManagement.DAL
+@using System.ComponentModel.DataAnnotations
+
+@{
+    ViewData["Title"] = "Borrow Books";
+    var genres = Enum.GetValues<Genre>();
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Borrow Books</h3>
+    <div>
+        <a asp-controller="Borrowing" asp-action="History" class="btn btn-outline-info">View History</a>
+    </div>
+</div>
+
+<!-- Compact Search and Filter Section -->
+<div class="row mb-3 g-2 align-items-end">
+    <div class="col-md-4">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search books...">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="genreFilter">
+            <option value="">All Genres</option>
+            @foreach (var genre in genres)
+            {
+                var displayName = genre.GetType()
+                    .GetField(genre.ToString())
+                    ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                    .FirstOrDefault() as DisplayAttribute;
+                
+                var genreName = displayName?.Name ?? genre.ToString();
+                <option value="@genreName">@genreName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" id="availabilityFilter">
+            <option value="">All Books</option>
+            <option value="available">Available to Borrow</option>
+            <option value="unavailable">No Copies</option>
+            <option value="borrowed">Has Borrowed</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+            <i class="fas fa-times"></i> Clear
+        </button>
+    </div>
+</div>
+<div class="mb-3">
+    <small class="text-muted" id="resultsCount"></small>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    var messageType = TempData["MessageType"]?.ToString() ?? "info";
+    var alertClass = messageType == "success" ? "alert-success" : "alert-danger";
+    <div class="alert @alertClass alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    @foreach (var book in Model)
+    {
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                @if (!string.IsNullOrEmpty(book.ImagePath))
+                {
+                    <img src="@Url.Content(book.ImagePath)" class="card-img-top p-2" style="height:200px; width:100%; object-fit:contain; background:#fff;" />
+                }
+                else
+                {
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px;">
+                        <span class="text-muted">No image</span>
+                    </div>
+                }
+
+                <div class="card-body pb-1">
+                    <h5 class="card-title">@book.Title </h5>
+                    <p class="card-text text-muted">@book.Author</p>
+                    @{
+                        var borrowedCount = ViewBag.BorrowedCounts[book.Id];
+                        var availableCopies = book.Copies - borrowedCount;
+                    }
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-@(availableCopies > 0 ? "success" : "danger")">
+                                Available: @availableCopies
+                            </span>
+                            <small class="text-muted">@book.Genre</small>
+                        </div>
+                        <small class="text-muted d-block">Total: @book.Copies | Borrowed: @borrowedCount</small>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white border-0 pt-0 pb-2">
+                                            <div class="d-grid gap-2">
+                            @if (availableCopies > 0)
+                            {
+                                <button type="button" class="btn btn-primary w-100 borrow-btn" 
+                                        data-book-id="@book.Id" 
+                                        data-book-title="@book.Title">
+                                    <i class="fas fa-book me-1"></i>Borrow
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="fas fa-times me-1"></i>No Copies Available
+                                </button>
+                            }
+
+                            <button type="button" class="btn btn-success w-100 return-btn" 
+                                    data-book-id="@book.Id" 
+                                    data-book-title="@book.Title">
+                                <i class="fas fa-undo me-1"></i>Return
+                            </button>
+                        </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">No books available</h4>
+        <a asp-controller="Books" asp-action="Create" class="btn btn-primary">Add Books</a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log('Borrowing page loaded, jQuery version:', $.fn.jquery);
+            
+            // Search and Filter functionality
+            function filterBooks() {
+                const searchTerm = $('#searchInput').val().toLowerCase();
+                const selectedGenre = $('#genreFilter').val();
+                const availabilityFilter = $('#availabilityFilter').val();
+                
+                let visibleCount = 0;
+                
+                $('.col-sm-6').each(function() {
+                    const card = $(this);
+                    const title = card.find('.card-title').text().toLowerCase();
+                    const author = card.find('.card-text').first().text().toLowerCase();
+                    const genre = card.find('.card-text').last().text().toLowerCase();
+                    const availableText = card.find('.badge').text();
+                    const copies = parseInt(availableText.match(/Available: (\d+)/)?.[1] || '0');
+                    const hasBorrowButton = card.find('.borrow-btn').length > 0;
+                    const hasReturnButton = card.find('.return-btn').length > 0;
+                    const returnButtonDisabled = card.find('.return-btn').prop('disabled');
+                    
+                    let showCard = true;
+                    
+                    // Search filter
+                    if (searchTerm && !title.includes(searchTerm) && !author.includes(searchTerm) && !genre.includes(searchTerm)) {
+                        showCard = false;
+                    }
+                    
+                    // Genre filter
+                    if (selectedGenre && !genre.includes(selectedGenre.toLowerCase())) {
+                        showCard = false;
+                    }
+                    
+                    // Availability filter
+                    if (availabilityFilter === 'available' && copies <= 0) {
+                        showCard = false;
+                    } else if (availabilityFilter === 'unavailable' && copies > 0) {
+                        showCard = false;
+                    } else if (availabilityFilter === 'borrowed' && returnButtonDisabled) {
+                        showCard = false;
+                    }
+                    
+                    if (showCard) {
+                        card.show();
+                        visibleCount++;
+                    } else {
+                        card.hide();
+                    }
+                });
+                
+                // Update results count
+                $('#resultsCount').text(`Showing ${visibleCount} of ${$('.col-sm-6').length} books`);
+                
+                // Show no results message if needed
+                if (visibleCount === 0) {
+                    if ($('.no-results-message').length === 0) {
+                        $('.row').append('<div class="col-12 text-center py-5 no-results-message"><h4 class="text-muted">No books match your search criteria</h4><button type="button" class="btn btn-outline-primary" id="clearFiltersBtn">Clear Filters</button></div>');
+                    }
+                } else {
+                    $('.no-results-message').remove();
+                }
+            }
+            
+            // Search input event
+            $('#searchInput').on('input', function() {
+                filterBooks();
+            });
+            
+            // Filter change events
+            $('#genreFilter, #availabilityFilter').on('change', function() {
+                filterBooks();
+            });
+            
+            // Clear filters
+            $('#clearFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#genreFilter').val('');
+                $('#availabilityFilter').val('');
+                filterBooks();
+            });
+            
+            // Clear filters from no results message
+            $(document).on('click', '#clearFiltersBtn', function() {
+                $('#searchInput').val('');
+                $('#genreFilter').val('');
+                $('#availabilityFilter').val('');
+                filterBooks();
+            });
+            
+            // Initialize results count
+            filterBooks();
+            
+            // Check initial state of return buttons on page load
+            $('.return-btn').each(function() {
+                const bookId = $(this).data('book-id');
+                const button = $(this);
+                
+                // Check if this book has any unreturned copies
+                $.ajax({
+                    url: `/Borrowing/CheckUnreturned/${bookId}`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response && !response.hasUnreturned) {
+                            // No unreturned copies, disable return button
+                            button.prop('disabled', true)
+                                .removeClass('btn-success')
+                                .addClass('btn-secondary')
+                                .html('<i class="fas fa-times me-1"></i>No Copies to Return');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Initial check unreturned error:', error);
+                    }
+                });
+            });
+            
+            // Handle borrow button click
+            $(document).on('click', '.borrow-btn', function () {
+                console.log('Borrow button clicked');
+                const bookId = $(this).data('book-id');
+                const bookTitle = $(this).data('book-title');
+                const button = $(this);
+                
+                console.log('Book ID:', bookId, 'Title:', bookTitle);
+                
+                // Disable button and show loading
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Borrowing...');
+                
+                // Get anti-forgery token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                console.log('Token found:', !!token);
+                
+                                 // Send AJAX borrow request
+                 $.ajax({
+                     url: '/Borrowing/BorrowAjax',
+                     type: 'POST',
+                     data: {
+                         id: bookId,
+                         __RequestVerificationToken: token
+                     },
+                     timeout: 10000, // 10 second timeout
+                     success: function (response) {
+                         console.log('Borrow response:', response);
+                         
+                         // Always re-enable button first
+                         button.prop('disabled', false).html('<i class="fas fa-book me-1"></i>Borrow');
+                         
+                                                   if (response && response.success) {
+                              // Update the availability count
+                              const card = button.closest('.card');
+                              const copiesBadge = card.find('.badge');
+                              const totalBorrowedText = card.find('small.text-muted.d-block');
+                              
+                              // Get current values
+                              const currentAvailable = parseInt(copiesBadge.text().match(/Available: (\d+)/)?.[1] || '0');
+                              const totalBorrowedMatch = totalBorrowedText.text().match(/Total: (\d+) \| Borrowed: (\d+)/);
+                              const totalCopies = parseInt(totalBorrowedMatch?.[1] || '0');
+                              const currentBorrowed = parseInt(totalBorrowedMatch?.[2] || '0');
+                              
+                              // Calculate new values
+                              const newAvailable = currentAvailable - 1;
+                              const newBorrowed = currentBorrowed + 1;
+                              
+                              // Update badge
+                              if (newAvailable > 0) {
+                                  copiesBadge.text(`Available: ${newAvailable}`).removeClass('bg-danger').addClass('bg-success');
+                              } else {
+                                  copiesBadge.text(`Available: ${newAvailable}`).removeClass('bg-success').addClass('bg-danger');
+                                  // Replace borrow button with disabled button
+                                  button.replaceWith('<button class="btn btn-secondary w-100" disabled><i class="fas fa-times me-1"></i>No Copies Available</button>');
+                              }
+                              
+                              // Update total/borrowed text
+                              totalBorrowedText.text(`Total: ${totalCopies} | Borrowed: ${newBorrowed}`);
+                             
+                                                           showNotification(`"${bookTitle}" borrowed successfully!`, 'success');
+                              
+                              // Enable the return button for this book since we just borrowed a copy
+                              const returnButton = button.closest('.card').find('.return-btn');
+                              returnButton.prop('disabled', false)
+                                  .removeClass('btn-secondary')
+                                  .addClass('btn-success')
+                                  .html('<i class="fas fa-undo me-1"></i>Return');
+                         } else {
+                             const errorMsg = response && response.message ? response.message : 'Unknown error occurred';
+                             showNotification(`Error: ${errorMsg}`, 'error');
+                         }
+                     },
+                     error: function (xhr, status, error) {
+                         console.error('Borrow AJAX error:', {xhr, status, error});
+                         
+                         // Always re-enable button
+                         button.prop('disabled', false).html('<i class="fas fa-book me-1"></i>Borrow');
+                         
+                         let errorMessage = 'Error borrowing book. Please try again.';
+                         if (xhr.status === 404) {
+                             errorMessage = 'Page not found. Please refresh the page.';
+                         } else if (xhr.status === 500) {
+                             errorMessage = 'Server error. Please try again later.';
+                         } else if (status === 'timeout') {
+                             errorMessage = 'Request timed out. Please try again.';
+                         }
+                         
+                         showNotification(errorMessage, 'error');
+                     },
+                     complete: function() {
+                         // Fallback to ensure button is always re-enabled
+                         setTimeout(function() {
+                             if (button.prop('disabled')) {
+                                 console.log('Fallback: Re-enabling borrow button');
+                                 button.prop('disabled', false).html('<i class="fas fa-book me-1"></i>Borrow');
+                             }
+                         }, 1000);
+                     }
+                 });
+            });
+            
+            // Handle return button click
+            $(document).on('click', '.return-btn', function () {
+                console.log('Return button clicked');
+                const bookId = $(this).data('book-id');
+                const bookTitle = $(this).data('book-title');
+                const button = $(this);
+                const card = button.closest('.card');
+                
+                console.log('Book ID:', bookId, 'Title:', bookTitle);
+                
+                // Disable button and show loading
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Returning...');
+                
+                // Get anti-forgery token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                console.log('Token found:', !!token);
+                
+                                 // Send AJAX return request
+                 $.ajax({
+                     url: '/Borrowing/ReturnAjax',
+                     type: 'POST',
+                     data: {
+                         id: bookId,
+                         __RequestVerificationToken: token
+                     },
+                     timeout: 10000, // 10 second timeout
+                     success: function (response) {
+                         console.log('Return response:', response);
+                         
+                         // Always re-enable button first
+                         button.prop('disabled', false).html('<i class="fas fa-undo me-1"></i>Return');
+                         
+                                                   if (response && response.success) {
+                              // Update the availability count
+                              const copiesBadge = card.find('.badge');
+                              const totalBorrowedText = card.find('small.text-muted.d-block');
+                              
+                              // Get current values
+                              const currentAvailable = parseInt(copiesBadge.text().match(/Available: (\d+)/)?.[1] || '0');
+                              const totalBorrowedMatch = totalBorrowedText.text().match(/Total: (\d+) \| Borrowed: (\d+)/);
+                              const totalCopies = parseInt(totalBorrowedMatch?.[1] || '0');
+                              const currentBorrowed = parseInt(totalBorrowedMatch?.[2] || '0');
+                              
+                              // Calculate new values
+                              const newAvailable = currentAvailable + 1;
+                              const newBorrowed = currentBorrowed - 1;
+                              
+                              // Update badge
+                              copiesBadge.text(`Available: ${newAvailable}`).removeClass('bg-danger').addClass('bg-success');
+                              
+                              // Update total/borrowed text
+                              totalBorrowedText.text(`Total: ${totalCopies} | Borrowed: ${newBorrowed}`);
+                              
+                              // If this was the first copy returned, add borrow button back
+                              if (newAvailable === 1) {
+                                  const disabledButton = card.find('.btn-secondary[disabled]');
+                                  if (disabledButton.length > 0) {
+                                      disabledButton.replaceWith(`<button type="button" class="btn btn-primary w-100 borrow-btn" data-book-id="${bookId}" data-book-title="${bookTitle}"><i class="fas fa-book me-1"></i>Borrow</button>`);
+                                  }
+                              }
+                             
+                                                           showNotification(`"${bookTitle}" returned successfully!`, 'success');
+                              
+                              // Check if there are any more unreturned copies for this book
+                              $.ajax({
+                                  url: `/Borrowing/CheckUnreturned/${bookId}`,
+                                  type: 'GET',
+                                  success: function(response) {
+                                      if (response && !response.hasUnreturned) {
+                                          // No more unreturned copies, disable return button
+                                          button.prop('disabled', true)
+                                              .removeClass('btn-success')
+                                              .addClass('btn-secondary')
+                                              .html('<i class="fas fa-times me-1"></i>No Copies to Return');
+                                      }
+                                  }
+                              });
+                          } else {
+                              const errorMsg = response && response.message ? response.message : 'Unknown error occurred';
+                              showNotification(`Error: ${errorMsg}`, 'error');
+                          }
+                     },
+                     error: function (xhr, status, error) {
+                         console.error('Return AJAX error:', {xhr, status, error});
+                         
+                         // Always re-enable button
+                         button.prop('disabled', false).html('<i class="fas fa-undo me-1"></i>Return');
+                         
+                         let errorMessage = 'Error returning book. Please try again.';
+                         if (xhr.status === 404) {
+                             errorMessage = 'Page not found. Please refresh the page.';
+                         } else if (xhr.status === 500) {
+                             errorMessage = 'Server error. Please try again later.';
+                         } else if (status === 'timeout') {
+                             errorMessage = 'Request timed out. Please try again.';
+                         }
+                         
+                         showNotification(errorMessage, 'error');
+                     },
+                     complete: function() {
+                         // Fallback to ensure button is always re-enabled
+                         setTimeout(function() {
+                             if (button.prop('disabled')) {
+                                 console.log('Fallback: Re-enabling return button');
+                                 button.prop('disabled', false).html('<i class="fas fa-undo me-1"></i>Return');
+                             }
+                         }, 1000);
+                     }
+                 });
+            });
+            
+
+
+            // Function to show notifications
+            function showNotification(message, type) {
+                console.log('Showing notification:', message, type);
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const alertHtml = `
+                    <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                $('body').append(alertHtml);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(function() {
+                    $('.alert').fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                }, 5000);
+            }
+        });
+    </script>
+}

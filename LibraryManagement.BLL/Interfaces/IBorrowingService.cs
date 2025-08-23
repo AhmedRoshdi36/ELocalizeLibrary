@@ -16,4 +16,5 @@ public interface IBorrowingService
     Task<IEnumerable<BorrowingTransaction>> GetArchivedTransactionsAsync();
     Task<bool> ArchiveTransactionAsync(int transactionId);
     Task<bool> UnarchiveTransactionAsync(int transactionId);
+    Task<bool> FixCopyCountInconsistenciesAsync();
 }

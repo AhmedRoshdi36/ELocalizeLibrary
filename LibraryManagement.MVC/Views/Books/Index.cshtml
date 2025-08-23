@@ -81,19 +81,18 @@
                     <p class="card-text  mb-2">Author: @item.Author</p>
                     <p class="card-text text-muted mb-2">@item.Genre</p>
 
-                    <p class="card-text small text-truncate" style="max-width: 100%;">
-                        @item.Description
-                    </p>
+                  
                     @{
                         var borrowedCount = ViewBag.BorrowedCounts[item.Id];
                         var availableCopies = item.Copies - borrowedCount;
                     }
                     <div class="mb-2">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="badge bg-@(availableCopies > 0 ? "success" : "danger")">
-                                Available: @availableCopies
+                            <span class="badge bg-@(item.Copies > 0 ? "success" : "danger")">
+                                Total: @item.Copies
+                                
                             </span>
-                        <small class="text-muted d-block">Total: @item.Copies | Borrowed: @borrowedCount</small>
+                            <small class="text-muted d-block">Available: @availableCopies | Borrowed: @borrowedCount</small>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 ﻿using LibraryManagement.BLL.Interfaces;
 using LibraryManagement.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace LibraryManagement.MVC.Controllers
@@ -59,8 +60,21 @@ namespace LibraryManagement.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _bookService.AddBookAsync(book, ImageFile);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _bookService.AddBookAsync(book, ImageFile);
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (ValidationException ex)
+                {
+                    ModelState.AddModelError("ImageFile", ex.Message);
+                    return View(book);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "An error occurred while creating the book. Please try again.");
+                    return View(book);
+                }
             }
             return View(book);
         }

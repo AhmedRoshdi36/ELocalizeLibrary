@@ -64,52 +64,6 @@ namespace LibraryManagement.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Books", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Author = "Ian Griffiths",
-                            Copies = 5,
-                            Description = "Build Cloud,Web and Desktop Applications",
-                            Genre = 1,
-                            ImagePath = "/images/books/CSharp 12 .jpg",
-                            IsDeleted = false,
-                            Title = "C# 12"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Author = "Stephan Prata",
-                            Copies = 4,
-                            Description = "Intro to C++",
-                            Genre = 1,
-                            ImagePath = "/images/books/CPP .jpg",
-                            IsDeleted = false,
-                            Title = "C++"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Author = "David Mount",
-                            Copies = 4,
-                            Description = "Data Structures and Algorithms in C++, Goodrich",
-                            Genre = 1,
-                            ImagePath = "/images/books/DSA.jpg",
-                            IsDeleted = false,
-                            Title = "Data Structures and Algorithms"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Author = "Jane Austen",
-                            Copies = 3,
-                            Description = "A classic romantic novel about love and societal expectations.",
-                            Genre = 4,
-                            ImagePath = "/images/books/Pride .jpg",
-                            IsDeleted = false,
-                            Title = "Pride and Prejudice"
-                        });
                 });
 
             modelBuilder.Entity("LibraryManagement.DAL.Entities.BorrowingTransaction", b =>

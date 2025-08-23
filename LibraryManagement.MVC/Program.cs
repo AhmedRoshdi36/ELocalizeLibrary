@@ -3,6 +3,7 @@ using LibraryManagement.BLL;
 using LibraryManagement.BLL.Interfaces;
 using LibraryManagement.BLL.Services;
 using LibraryManagement.DAL.Persistance;
+using LibraryManagement.DAL.Seeder;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Extensions.Hosting;
@@ -11,7 +12,7 @@ namespace LibraryManagement.MVC
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -52,8 +53,15 @@ namespace LibraryManagement.MVC
                     name: "default",
                     pattern: "{controller=Books}/{action=Index}/{id?}");
 
+                // Seed the database
+                using (var scope = app.Services.CreateScope())
+                {
+                    var context = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+                    await DatabaseSeeder.SeedAsync(context);
+                }
+
                 Log.Information("Library Management System started successfully");
-                app.Run();
+                await app.RunAsync();
             }
             catch (Exception ex)
             {

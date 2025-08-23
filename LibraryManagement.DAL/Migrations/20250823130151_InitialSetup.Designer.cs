@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagement.DAL.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    [Migration("20250821185842_editBookImage")]
-    partial class editBookImage
+    [Migration("20250823130151_InitialSetup")]
+    partial class InitialSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,17 +41,23 @@ namespace LibraryManagement.DAL.Migrations
                     b.Property<int>("Copies")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int>("Genre")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImagePath")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<DateTime?>("PublishedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -61,26 +67,49 @@ namespace LibraryManagement.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Books", (string)null);
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Author = "",
-                            Copies = 0,
-                            Description = "",
-                            ImagePath = "",
-                            Title = "C#"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Author = "",
-                            Copies = 0,
-                            Description = "",
-                            ImagePath = "",
-                            Title = "C++"
-                        });
+            modelBuilder.Entity("LibraryManagement.DAL.Entities.BorrowingTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BorrowedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ReturnedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("BorrowingTransactions");
+                });
+
+            modelBuilder.Entity("LibraryManagement.DAL.Entities.BorrowingTransaction", b =>
+                {
+                    b.HasOne("LibraryManagement.DAL.Entities.Book", "Book")
+                        .WithMany("Transactions")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
+
+            modelBuilder.Entity("LibraryManagement.DAL.Entities.Book", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

@@ -55,6 +55,11 @@ Before running this application, make sure you have:
 
 ## ⚡ Quick Start
 
+### 🚀 For Recruiters (Super Quick Setup)
+If you're a recruiter or want to get started quickly, see [SETUP.md](SETUP.md) for a 3-step setup guide with sample data.
+
+### 🔧 Full Setup
+
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/AhmedRoshdi36/ELocalizeLibrary.git

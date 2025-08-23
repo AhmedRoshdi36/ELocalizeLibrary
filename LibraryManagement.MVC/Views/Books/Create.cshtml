@@ -96,8 +96,9 @@
             const submitBtn = document.querySelector('button[type="submit"]');
             
             if (!file) {
-                messageDiv.style.display = 'none';
-                submitBtn.disabled = false;
+                messageDiv.textContent = 'Book cover image is required.';
+                messageDiv.style.display = 'block';
+                submitBtn.disabled = true;
                 return;
             }
             
@@ -125,5 +126,35 @@
             messageDiv.style.display = 'none';
             submitBtn.disabled = false;
         }
+
+        // Add form validation on submit
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const imageInput = document.querySelector('input[name="ImageFile"]');
+            const messageDiv = document.getElementById('fileValidationMessage');
+            const submitBtn = document.querySelector('button[type="submit"]');
+
+            // Initial validation check
+            if (!imageInput.files || imageInput.files.length === 0) {
+                messageDiv.textContent = 'Book cover image is required.';
+                messageDiv.style.display = 'block';
+                submitBtn.disabled = true;
+            }
+
+            form.addEventListener('submit', function(e) {
+                if (!imageInput.files || imageInput.files.length === 0) {
+                    e.preventDefault();
+                    messageDiv.textContent = 'Book cover image is required.';
+                    messageDiv.style.display = 'block';
+                    submitBtn.disabled = true;
+                    return false;
+                }
+            });
+
+            // Clear validation message when user selects a file
+            imageInput.addEventListener('change', function() {
+                validateFile(this);
+            });
+        });
     </script>
 }

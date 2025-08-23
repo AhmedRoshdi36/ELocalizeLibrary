@@ -57,7 +57,7 @@ Before running this application, make sure you have:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/library-management-system.git
+git clone https://github.com/AhmedRoshdi36/ELocalizeLibrary.git
 cd library-management-system
 ```
 
@@ -216,9 +216,6 @@ The application uses Serilog for structured logging:
 4. **Push** to the branch (`git push origin feature/AmazingFeature`)
 5. **Open** a Pull Request
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -229,7 +226,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-If you have any questions or need support:
+
 
 - **Issues**: Create an issue in the GitHub repository
 - **Documentation**: Check the inline code documentation
